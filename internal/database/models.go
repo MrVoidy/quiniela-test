@@ -5,30 +5,13 @@
 package database
 
 import (
-	"database/sql"
+	"time"
 )
 
-type QuinielasFixture struct {
-	ID       int32
-	HomeTeam sql.NullString
-	AwayTeam sql.NullString
-}
-
-type QuinielasFixturesResult struct {
-	FixtureID int32
-	ScoreA    int32
-	ScoreB    int32
-}
-
-type QuinielasResponseFixture struct {
-	ID          int32
-	FixtureID   int32
-	UsuarioID   int32
-	PrediccionA int32
-	PrediccionB int32
-}
-
-type Usuario struct {
-	ID     int32
-	Nombre string
+type User struct {
+	ID        []byte
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Name      string
+	ApiKey    string
 }
