@@ -3,65 +3,84 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
-	"strconv"
+	"os"
 
-	"quiniela-app/internal/database"
-
-	"github.com/go-chi/chi/v5"
+	_ "github.com/go-chi/chi/v5"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
-type Server struct {
-	DB *database.Queries
-}
-
 func main() {
-	dbConn, err := sql.Open("mysql", "user:mypassword@tcp(localhost:3306)/quiniela_db")
+	fmt.Println("--- STARTING SERVER ---")
+
+	// Load .env from two levels up (cmd/api -> project root)
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		fmt.Println("Note: Root .env not found, trying current folder...")
+		godotenv.Load(".env")
+	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("CRITICAL: DB_URL not found in .env")
+	}
+
+	fmt.Println("Connecting to database...")
+	db, err := sql.Open("mysql", dbURL)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	srv := &Server{DB: database.New(dbConn)}
-	r := chi.NewRouter()
+	// Test the connection
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("DB connection failed! Verify your database is running. Error: %v", err)
+	}
 
-	r.Post("/predict", srv.handlePredict)
-	r.Get("/score/{userID}", srv.handleGetScore)
+	fmt.Println("✅ Successfully connected to quiniela_db!")
+	fmt.Printf("🚀 Server starting at http://localhost:%s\n", port)
 
-	log.Println("Quiniela API starting on :8080")
-	http.ListenAndServe(":8080", r)
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /v1/healthz", handlerReadiness)
+	mux.HandleFunc("GET /v1/err", handlerErr)
+
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
+	}
+
+	log.Fatal(srv.ListenAndServe())
 }
 
-func (s *Server) handlePredict(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		FixtureID int32 `json:"fixture_id"`
-		UserID    int32 `json:"user_id"`
-		PredA     int32 `json:"pred_a"`
-		PredB     int32 `json:"pred_b"`
-	}
-	json.NewDecoder(r.Body).Decode(&req)
-
-	err := s.DB.CreatePrediction(r.Context(), database.CreatePredictionParams{
-		FixtureID:   req.FixtureID,
-		UsuarioID:   req.UserID,
-		PrediccionA: req.PredA,
-		PrediccionB: req.PredB,
-	})
-
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	w.WriteHeader(http.StatusCreated)
+// Handlers
+func handlerReadiness(w http.ResponseWriter, r *http.Request) {
+	respondWithJSON(w, 200, struct {
+		Status string `json:"status"`
+	}{Status: "ok"})
 }
 
-func (s *Server) handleGetScore(w http.ResponseWriter, r *http.Request) {
-	userID, _ := strconv.Atoi(chi.URLParam(r, "userID"))
-	score, err := s.DB.GetUserScore(r.Context(), int32(userID))
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-	json.NewEncoder(w).Encode(map[string]int64{"total_points": score})
+func handlerErr(w http.ResponseWriter, r *http.Request) {
+	respondWithError(w, 500, "Internal Server Error")
+}
+
+// Helpers
+func respondWithError(w http.ResponseWriter, code int, msg string) {
+	respondWithJSON(w, code, struct {
+		Error string `json:"error"`
+	}{Error: msg})
+}
+
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	data, _ := json.Marshal(payload)
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(data)
 }
