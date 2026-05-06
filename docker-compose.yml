@@ -1,0 +1,8 @@
+services:
+  mysql-db:
+    image: mysql:8.4
+    container_name: quiniela_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
