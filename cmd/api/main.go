@@ -50,7 +50,7 @@ func main() {
 		log.Fatalf("DB connection failed! Error: %v", err)
 	}
 
-	fmt.Println("✅ Successfully connected to quiniela_db!")
+	fmt.Println("Successfully connected to quiniela_db!")
 
 	// 3. Initialize sqlc queries
 	apiCfg := apiConfig{
@@ -71,7 +71,7 @@ func main() {
 		Handler: mux,
 	}
 
-	fmt.Printf("🚀 Server starting at http://localhost:%s\n", port)
+	fmt.Printf("Server starting at http://localhost:%s\n", port)
 	log.Fatal(srv.ListenAndServe())
 }
 
