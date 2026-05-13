@@ -1,0 +1,166 @@
+basePath: /
+definitions:
+  apidoc.CreateUserRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  apidoc.CreateUserResponse:
+    properties:
+      message:
+        type: string
+      name:
+        type: string
+    type: object
+  apidoc.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  apidoc.HealthResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  apidoc.PostPredictionRequest:
+    properties:
+      fixture_id:
+        type: integer
+      pred_a:
+        type: integer
+      pred_b:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  apidoc.UserScoreResponse:
+    properties:
+      total_points:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: HTTP API for users, predictions, and health checks. Set DB_URL (Postgres).
+    Optional SWAGGER_HOST for Swagger UI "Try it out" (defaults to localhost:PORT).
+  title: Quiniela API
+  version: "1.0"
+paths:
+  /v1/err:
+    get:
+      description: Returns a JSON error with HTTP 500.
+      produces:
+      - application/json
+      responses:
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apidoc.ErrorResponse'
+      summary: Force error response
+      tags:
+      - health
+  /v1/healthz:
+    get:
+      description: Liveness probe; returns status ok when the process is up.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apidoc.HealthResponse'
+      summary: Health check
+      tags:
+      - health
+  /v1/predictions:
+    post:
+      consumes:
+      - application/json
+      description: Inserts into quinielas_response_fixture.
+      parameters:
+      - description: Prediction payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/apidoc.PostPredictionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: plain text error
+          schema:
+            type: string
+        "500":
+          description: plain text error
+          schema:
+            type: string
+      summary: Submit prediction
+      tags:
+      - predictions
+  /v1/users:
+    post:
+      consumes:
+      - application/json
+      description: Creates a row in the users table.
+      parameters:
+      - description: User payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/apidoc.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/apidoc.CreateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apidoc.ErrorResponse'
+      summary: Register user
+      tags:
+      - users
+  /v1/users/{userID}/score:
+    get:
+      description: Aggregates matching predictions against stored fixture results.
+      parameters:
+      - description: Usuario id (integer)
+        in: path
+        name: userID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apidoc.UserScoreResponse'
+        "400":
+          description: plain text error
+          schema:
+            type: string
+        "404":
+          description: plain text error
+          schema:
+            type: string
+      summary: User prediction score
+      tags:
+      - predictions
+schemes:
+- http
+- https
+swagger: "2.0"
+tags:
+- description: Liveness and error test routes
+  name: health
+- description: User registration
+  name: users
+- description: Quiniela predictions and scores
+  name: predictions
