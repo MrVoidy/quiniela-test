@@ -20,15 +20,15 @@ type CreateUserRequest struct {
 type CreateUserResponse struct {
 	Message string `json:"message"`
 	Name    string `json:"name"`
-	UserID  string `json:"user_id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	UserID  int32  `json:"user_id" example:"1"`
 }
 
 // PostPredictionRequest is the body for POST /v1/predictions.
 type PostPredictionRequest struct {
-	FixtureID int32  `json:"fixture_id"`
-	UserID    string `json:"user_id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	PredA     int32  `json:"pred_a"`
-	PredB     int32  `json:"pred_b"`
+	FixtureID int32 `json:"fixture_id"`
+	UserID    int32 `json:"user_id" example:"1"`
+	PredA     int32 `json:"pred_a"`
+	PredB     int32 `json:"pred_b"`
 }
 
 // UserScoreResponse is returned by GET /v1/users/{userID}/score.

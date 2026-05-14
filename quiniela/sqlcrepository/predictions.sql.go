@@ -7,8 +7,6 @@ package sqlcrepository
 
 import (
 	"context"
-
-	"github.com/google/uuid"
 )
 
 const createPrediction = `-- name: CreatePrediction :exec
@@ -17,10 +15,10 @@ VALUES ($1, $2, $3, $4)
 `
 
 type CreatePredictionParams struct {
-	FixtureID int32     `json:"fixture_id"`
-	UserID    uuid.UUID `json:"user_id"`
-	PredA     int32     `json:"pred_a"`
-	PredB     int32     `json:"pred_b"`
+	FixtureID int32 `json:"fixture_id"`
+	UserID    int32 `json:"user_id"`
+	PredA     int32 `json:"pred_a"`
+	PredB     int32 `json:"pred_b"`
 }
 
 func (q *Queries) CreatePrediction(ctx context.Context, arg CreatePredictionParams) error {
@@ -45,7 +43,7 @@ AND (
 )
 `
 
-func (q *Queries) GetUserScore(ctx context.Context, userID uuid.UUID) (int64, error) {
+func (q *Queries) GetUserScore(ctx context.Context, userID int32) (int64, error) {
 	row := q.db.QueryRow(ctx, getUserScore, userID)
 	var total_points int64
 	err := row.Scan(&total_points)

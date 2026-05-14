@@ -8,21 +8,24 @@ import (
 
 // User is an API user persisted in Postgres (table users).
 type User struct {
-	ID        uuid.UUID
+	ID        int32
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string
 	ApiKey    string
 }
 
-// NewRegistered builds a user ready to insert (id and api_key generated).
+// NewRegistered builds a user ready to insert (id assigned by database on save).
 func NewRegistered(name string) *User {
 	now := time.Now()
+	key := uuid.New().String()
+	if len(key) > 64 {
+		key = key[:64]
+	}
 	return &User{
-		ID:        uuid.New(),
 		CreatedAt: now,
 		UpdatedAt: now,
 		Name:      name,
-		ApiKey:    uuid.New().String(),
+		ApiKey:    key,
 	}
 }

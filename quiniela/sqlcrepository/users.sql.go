@@ -8,30 +8,35 @@ package sqlcrepository
 import (
 	"context"
 	"time"
-
-	"github.com/google/uuid"
 )
 
-const createUser = `-- name: CreateUser :exec
-INSERT INTO users (id, created_at, updated_at, name, api_key)
-VALUES ($1, $2, $3, $4, $5)
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (created_at, updated_at, name, api_key)
+VALUES ($1, $2, $3, $4)
+RETURNING id, created_at, updated_at, name, api_key
 `
 
 type CreateUserParams struct {
-	ID        uuid.UUID `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Name      string    `json:"name"`
 	ApiKey    string    `json:"api_key"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
-	_, err := q.db.Exec(ctx, createUser,
-		arg.ID,
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 		arg.Name,
 		arg.ApiKey,
 	)
-	return err
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.ApiKey,
+	)
+	return i, err
 }

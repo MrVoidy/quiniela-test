@@ -7,7 +7,6 @@ import (
 	portsprediction "quiniela-app/quiniela/lib/ports/prediction"
 	"quiniela-app/quiniela/sqlcrepository"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -33,7 +32,7 @@ func (r *Repository) Save(ctx context.Context, p *domainprediction.Prediction) e
 	})
 }
 
-// GetUserScore returns the aggregate score for a user (UUID from users table).
-func (r *Repository) GetUserScore(ctx context.Context, userID uuid.UUID) (int64, error) {
+// GetUserScore returns the aggregate score for a user.
+func (r *Repository) GetUserScore(ctx context.Context, userID int32) (int64, error) {
 	return r.q.GetUserScore(ctx, userID)
 }

@@ -22,13 +22,17 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 	return &Repository{q: sqlcrepository.New(pool)}
 }
 
-// Save maps domain user to sqlc and inserts.
+// Save inserts the user and sets u.ID from the database.
 func (r *Repository) Save(ctx context.Context, u *domainuser.User) error {
-	return r.q.CreateUser(ctx, sqlcrepository.CreateUserParams{
-		ID:        u.ID,
+	row, err := r.q.CreateUser(ctx, sqlcrepository.CreateUserParams{
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 		Name:      u.Name,
 		ApiKey:    u.ApiKey,
 	})
+	if err != nil {
+		return err
+	}
+	u.ID = row.ID
+	return nil
 }

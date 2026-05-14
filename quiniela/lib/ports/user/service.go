@@ -1,16 +1,12 @@
 package portsuser
 
-import (
-	"context"
-
-	"github.com/google/uuid"
-)
+import "context"
 
 // RegisterUserResult is what HTTP clients need after a successful registration.
 type RegisterUserResult struct {
 	Message string
 	Name    string
-	UserID  uuid.UUID
+	UserID  int32
 }
 
 // UserService is the application API for user workflows (what handlers call).

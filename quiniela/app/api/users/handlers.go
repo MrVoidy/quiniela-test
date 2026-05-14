@@ -55,10 +55,10 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	_ = httpjson.Write(w, http.StatusCreated, struct {
 		Message string `json:"message"`
 		Name    string `json:"name"`
-		UserID  string `json:"user_id"`
+		UserID  int32  `json:"user_id"`
 	}{
 		Message: res.Message,
 		Name:    res.Name,
-		UserID:  res.UserID.String(),
+		UserID:  res.UserID,
 	})
 }

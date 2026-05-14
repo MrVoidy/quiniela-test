@@ -57,7 +57,7 @@ const docTemplate = `{
         },
         "/v1/predictions": {
             "post": {
-                "description": "Inserts into fixture_predictions; user_id must be a users.id UUID from POST /v1/users.",
+                "description": "Inserts into fixture_predictions; user_id is users.id (integer) from POST /v1/users.",
                 "consumes": [
                     "application/json"
                 ],
@@ -150,8 +150,8 @@ const docTemplate = `{
                 "summary": "User prediction score",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "users.id (UUID)",
+                        "type": "integer",
+                        "description": "users.id (integer)",
                         "name": "userID",
                         "in": "path",
                         "required": true
@@ -199,8 +199,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -233,8 +233,8 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "user_id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },

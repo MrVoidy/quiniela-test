@@ -7,7 +7,6 @@ package sqlcrepository
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -18,11 +17,11 @@ type Fixture struct {
 }
 
 type FixturePrediction struct {
-	ID        int32     `json:"id"`
-	FixtureID int32     `json:"fixture_id"`
-	UserID    uuid.UUID `json:"user_id"`
-	PredA     int32     `json:"pred_a"`
-	PredB     int32     `json:"pred_b"`
+	ID        int32 `json:"id"`
+	FixtureID int32 `json:"fixture_id"`
+	UserID    int32 `json:"user_id"`
+	PredA     int32 `json:"pred_a"`
+	PredB     int32 `json:"pred_b"`
 }
 
 type FixtureResult struct {
@@ -32,7 +31,7 @@ type FixtureResult struct {
 }
 
 type User struct {
-	ID        uuid.UUID `json:"id"`
+	ID        int32     `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Name      string    `json:"name"`

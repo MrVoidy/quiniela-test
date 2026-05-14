@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	_ "quiniela-app/quiniela/app/api/apidoc" // referenced by swag annotations
@@ -11,7 +12,6 @@ import (
 	domainprediction "quiniela-app/quiniela/lib/domain/prediction"
 	portsprediction "quiniela-app/quiniela/lib/ports/prediction"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -29,7 +29,7 @@ func NewHandler(svc portsprediction.PredictionService) *Handler {
 // PostPrediction stores a user's score guess for a fixture.
 //
 //	@Summary		Submit prediction
-//	@Description	Inserts into fixture_predictions; user_id must be a users.id UUID from POST /v1/users.
+//	@Description	Inserts into fixture_predictions; user_id is users.id (integer) from POST /v1/users.
 //	@Tags			predictions
 //	@Accept			json
 //	@Produce		json
@@ -40,25 +40,23 @@ func NewHandler(svc portsprediction.PredictionService) *Handler {
 //	@Router			/v1/predictions [post]
 func (h *Handler) PostPrediction(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		FixtureID int32  `json:"fixture_id"`
-		UserID    string `json:"user_id"`
-		PredA     int32  `json:"pred_a"`
-		PredB     int32  `json:"pred_b"`
+		FixtureID int32 `json:"fixture_id"`
+		UserID    int32 `json:"user_id"`
+		PredA     int32 `json:"pred_a"`
+		PredB     int32 `json:"pred_b"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
-
-	uid, err := uuid.Parse(strings.TrimSpace(req.UserID))
-	if err != nil {
-		http.Error(w, "Invalid user_id (expected UUID)", http.StatusBadRequest)
+	if req.UserID <= 0 {
+		http.Error(w, "Invalid user_id (positive integer required)", http.StatusBadRequest)
 		return
 	}
 
-	err = h.Svc.SubmitPrediction(r.Context(), &domainprediction.Prediction{
+	err := h.Svc.SubmitPrediction(r.Context(), &domainprediction.Prediction{
 		FixtureID: req.FixtureID,
-		UserID:    uid,
+		UserID:    req.UserID,
 		PredA:     req.PredA,
 		PredB:     req.PredB,
 	})
@@ -81,7 +79,7 @@ func (h *Handler) PostPrediction(w http.ResponseWriter, r *http.Request) {
 //	@Description	Aggregates matching predictions against stored fixture results.
 //	@Tags			predictions
 //	@Produce		json
-//	@Param			userID	path		string	true	"users.id (UUID)"
+//	@Param			userID	path		int	true	"users.id (integer)"
 //	@Success		200		{object}	apidoc.UserScoreResponse
 //	@Failure		400		{string}	string	"plain text error"
 //	@Failure		404		{string}	string	"plain text error"
@@ -93,11 +91,12 @@ func (h *Handler) GetUserScore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := uuid.Parse(strings.TrimSpace(idStr))
-	if err != nil {
-		http.Error(w, "Invalid user id (expected UUID)", http.StatusBadRequest)
+	uid64, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 32)
+	if err != nil || uid64 <= 0 {
+		http.Error(w, "Invalid user id (positive integer required)", http.StatusBadRequest)
 		return
 	}
+	userID := int32(uid64)
 
 	score, err := h.Svc.ScoreForUser(r.Context(), userID)
 	if err != nil {
