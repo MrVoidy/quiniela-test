@@ -2,6 +2,7 @@ package predictions
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // Handler serves HTTP for prediction workflows using a PredictionService port.
@@ -61,7 +63,12 @@ func (h *Handler) PostPrediction(w http.ResponseWriter, r *http.Request) {
 		PredB:     req.PredB,
 	})
 	if err != nil {
-		http.Error(w, "Could not save prediction", http.StatusInternalServerError)
+		var pe *pgconn.PgError
+		if errors.As(err, &pe) && pe.Code == "23503" {
+			http.Error(w, "user_id or fixture_id does not exist: create the user (POST /v1/users) and ensure fixtures.id exists in the database", http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "Could not save prediction: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
