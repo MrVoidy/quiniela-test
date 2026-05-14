@@ -5,6 +5,8 @@ import (
 
 	domainprediction "quiniela-app/quiniela/lib/domain/prediction"
 	portsprediction "quiniela-app/quiniela/lib/ports/prediction"
+
+	"github.com/google/uuid"
 )
 
 // Service implements portsprediction.PredictionService.
@@ -24,7 +26,7 @@ func (s *Service) SubmitPrediction(ctx context.Context, p *domainprediction.Pred
 	return s.repo.Save(ctx, p)
 }
 
-// ScoreForUsuario returns the aggregate score for the given usuario id.
-func (s *Service) ScoreForUsuario(ctx context.Context, usuarioID int32) (int64, error) {
-	return s.repo.GetUsuarioScore(ctx, usuarioID)
+// ScoreForUser returns the aggregate score for the given users.id UUID.
+func (s *Service) ScoreForUser(ctx context.Context, userID uuid.UUID) (int64, error) {
+	return s.repo.GetUserScore(ctx, userID)
 }

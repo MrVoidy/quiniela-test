@@ -7,6 +7,7 @@ import (
 	portsprediction "quiniela-app/quiniela/lib/ports/prediction"
 	"quiniela-app/quiniela/sqlcrepository"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -25,14 +26,14 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 // Save inserts a prediction row.
 func (r *Repository) Save(ctx context.Context, p *domainprediction.Prediction) error {
 	return r.q.CreatePrediction(ctx, sqlcrepository.CreatePredictionParams{
-		FixtureID:   p.FixtureID,
-		UsuarioID:   p.UsuarioID,
-		PrediccionA: p.PredA,
-		PrediccionB: p.PredB,
+		FixtureID: p.FixtureID,
+		UserID:    p.UserID,
+		PredA:     p.PredA,
+		PredB:     p.PredB,
 	})
 }
 
-// GetUsuarioScore returns the aggregate score for a usuario.
-func (r *Repository) GetUsuarioScore(ctx context.Context, usuarioID int32) (int64, error) {
-	return r.q.GetUserScore(ctx, usuarioID)
+// GetUserScore returns the aggregate score for a user (UUID from users table).
+func (r *Repository) GetUserScore(ctx context.Context, userID uuid.UUID) (int64, error) {
+	return r.q.GetUserScore(ctx, userID)
 }

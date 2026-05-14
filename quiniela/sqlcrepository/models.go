@@ -11,24 +11,24 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type QuinielasFixture struct {
+type Fixture struct {
 	ID       int32       `json:"id"`
 	HomeTeam pgtype.Text `json:"home_team"`
 	AwayTeam pgtype.Text `json:"away_team"`
 }
 
-type QuinielasFixturesResult struct {
+type FixturePrediction struct {
+	ID        int32     `json:"id"`
+	FixtureID int32     `json:"fixture_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	PredA     int32     `json:"pred_a"`
+	PredB     int32     `json:"pred_b"`
+}
+
+type FixtureResult struct {
 	FixtureID int32 `json:"fixture_id"`
 	ScoreA    int32 `json:"score_a"`
 	ScoreB    int32 `json:"score_b"`
-}
-
-type QuinielasResponseFixture struct {
-	ID          int32 `json:"id"`
-	FixtureID   int32 `json:"fixture_id"`
-	UsuarioID   int32 `json:"usuario_id"`
-	PrediccionA int32 `json:"prediccion_a"`
-	PrediccionB int32 `json:"prediccion_b"`
 }
 
 type User struct {
@@ -37,9 +37,4 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Name      string    `json:"name"`
 	ApiKey    string    `json:"api_key"`
-}
-
-type Usuario struct {
-	ID     int32  `json:"id"`
-	Nombre string `json:"nombre"`
 }

@@ -7,44 +7,46 @@ package sqlcrepository
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createPrediction = `-- name: CreatePrediction :exec
-INSERT INTO quinielas_response_fixture (fixture_id, usuario_id, prediccion_a, prediccion_b)
+INSERT INTO fixture_predictions (fixture_id, user_id, pred_a, pred_b)
 VALUES ($1, $2, $3, $4)
 `
 
 type CreatePredictionParams struct {
-	FixtureID   int32 `json:"fixture_id"`
-	UsuarioID   int32 `json:"usuario_id"`
-	PrediccionA int32 `json:"prediccion_a"`
-	PrediccionB int32 `json:"prediccion_b"`
+	FixtureID int32     `json:"fixture_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	PredA     int32     `json:"pred_a"`
+	PredB     int32     `json:"pred_b"`
 }
 
 func (q *Queries) CreatePrediction(ctx context.Context, arg CreatePredictionParams) error {
 	_, err := q.db.Exec(ctx, createPrediction,
 		arg.FixtureID,
-		arg.UsuarioID,
-		arg.PrediccionA,
-		arg.PrediccionB,
+		arg.UserID,
+		arg.PredA,
+		arg.PredB,
 	)
 	return err
 }
 
 const getUserScore = `-- name: GetUserScore :one
 SELECT COUNT(*)::bigint AS total_points
-FROM quinielas_response_fixture p
-JOIN quinielas_fixtures_result r ON p.fixture_id = r.fixture_id
-WHERE p.usuario_id = $1
+FROM fixture_predictions p
+JOIN fixture_results r ON p.fixture_id = r.fixture_id
+WHERE p.user_id = $1
 AND (
-    (r.score_a > r.score_b AND p.prediccion_a > p.prediccion_b) OR
-    (r.score_a < r.score_b AND p.prediccion_a < p.prediccion_b) OR
-    (r.score_a = r.score_b AND p.prediccion_a = p.prediccion_b)
+    (r.score_a > r.score_b AND p.pred_a > p.pred_b) OR
+    (r.score_a < r.score_b AND p.pred_a < p.pred_b) OR
+    (r.score_a = r.score_b AND p.pred_a = p.pred_b)
 )
 `
 
-func (q *Queries) GetUserScore(ctx context.Context, usuarioID int32) (int64, error) {
-	row := q.db.QueryRow(ctx, getUserScore, usuarioID)
+func (q *Queries) GetUserScore(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, getUserScore, userID)
 	var total_points int64
 	err := row.Scan(&total_points)
 	return total_points, err

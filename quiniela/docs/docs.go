@@ -57,7 +57,7 @@ const docTemplate = `{
         },
         "/v1/predictions": {
             "post": {
-                "description": "Inserts into quinielas_response_fixture.",
+                "description": "Inserts into fixture_predictions; user_id must be a users.id UUID from POST /v1/users.",
                 "consumes": [
                     "application/json"
                 ],
@@ -150,8 +150,8 @@ const docTemplate = `{
                 "summary": "User prediction score",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Usuario id (integer)",
+                        "type": "string",
+                        "description": "users.id (UUID)",
                         "name": "userID",
                         "in": "path",
                         "required": true
@@ -197,6 +197,10 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
                 }
             }
         },
@@ -229,7 +233,8 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "user_id": {
-                    "type": "integer"
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
                 }
             }
         },

@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS quinielas_fixtures (
+CREATE TABLE IF NOT EXISTS fixtures (
     id SERIAL PRIMARY KEY,
     home_team VARCHAR(100),
     away_team VARCHAR(100)

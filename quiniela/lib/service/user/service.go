@@ -28,5 +28,6 @@ func (s *Service) RegisterUser(ctx context.Context, name string) (*portsuser.Reg
 	return &portsuser.RegisterUserResult{
 		Message: "User created successfully!",
 		Name:    name,
+		UserID:  u.ID,
 	}, nil
 }

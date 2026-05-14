@@ -3,13 +3,14 @@ package predictions
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
+	"strings"
 
 	_ "quiniela-app/quiniela/app/api/apidoc" // referenced by swag annotations
 
 	domainprediction "quiniela-app/quiniela/lib/domain/prediction"
 	portsprediction "quiniela-app/quiniela/lib/ports/prediction"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -26,7 +27,7 @@ func NewHandler(svc portsprediction.PredictionService) *Handler {
 // PostPrediction stores a user's score guess for a fixture.
 //
 //	@Summary		Submit prediction
-//	@Description	Inserts into quinielas_response_fixture.
+//	@Description	Inserts into fixture_predictions; user_id must be a users.id UUID from POST /v1/users.
 //	@Tags			predictions
 //	@Accept			json
 //	@Produce		json
@@ -37,19 +38,25 @@ func NewHandler(svc portsprediction.PredictionService) *Handler {
 //	@Router			/v1/predictions [post]
 func (h *Handler) PostPrediction(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		FixtureID int32 `json:"fixture_id"`
-		UserID    int32 `json:"user_id"`
-		PredA     int32 `json:"pred_a"`
-		PredB     int32 `json:"pred_b"`
+		FixtureID int32  `json:"fixture_id"`
+		UserID    string `json:"user_id"`
+		PredA     int32  `json:"pred_a"`
+		PredB     int32  `json:"pred_b"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
 
-	err := h.Svc.SubmitPrediction(r.Context(), &domainprediction.Prediction{
+	uid, err := uuid.Parse(strings.TrimSpace(req.UserID))
+	if err != nil {
+		http.Error(w, "Invalid user_id (expected UUID)", http.StatusBadRequest)
+		return
+	}
+
+	err = h.Svc.SubmitPrediction(r.Context(), &domainprediction.Prediction{
 		FixtureID: req.FixtureID,
-		UsuarioID: req.UserID,
+		UserID:    uid,
 		PredA:     req.PredA,
 		PredB:     req.PredB,
 	})
@@ -61,31 +68,31 @@ func (h *Handler) PostPrediction(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// GetUserScore returns the count of correctly guessed outcomes for a usuario.
+// GetUserScore returns the count of correctly guessed outcomes for a user.
 //
 //	@Summary		User prediction score
 //	@Description	Aggregates matching predictions against stored fixture results.
 //	@Tags			predictions
 //	@Produce		json
-//	@Param			userID	path		int	true	"Usuario id (integer)"
+//	@Param			userID	path		string	true	"users.id (UUID)"
 //	@Success		200		{object}	apidoc.UserScoreResponse
 //	@Failure		400		{string}	string	"plain text error"
 //	@Failure		404		{string}	string	"plain text error"
 //	@Router			/v1/users/{userID}/score [get]
 func (h *Handler) GetUserScore(w http.ResponseWriter, r *http.Request) {
 	idStr, ok := mux.Vars(r)["userID"]
-	if !ok || idStr == "" {
+	if !ok || strings.TrimSpace(idStr) == "" {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
 	}
 
-	userID, err := strconv.Atoi(idStr)
+	userID, err := uuid.Parse(strings.TrimSpace(idStr))
 	if err != nil {
-		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		http.Error(w, "Invalid user id (expected UUID)", http.StatusBadRequest)
 		return
 	}
 
-	score, err := h.Svc.ScoreForUsuario(r.Context(), int32(userID))
+	score, err := h.Svc.ScoreForUser(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
